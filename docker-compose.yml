@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  web:
+    image: nginx:stable
+    container_name: nginx
+    ports:
+      - "81:80"
+    restart: always
+    volumes:
+      - "./nginx/conf.d:/etc/nginx/conf.d"
+      - "./nginx/src:/var/www/"
+    depends_on:
+      - php
+      - db
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: php
+    restart: always
+    volumes:
+      - "./nginx/src:/var/www/"
+      - "./php/php.ini:/usr/local/etc/php/php.ini"
+  db:
+    image: postgres:12
+    container_name: pg
+    env_file:
+      - .pg_env
+    restart: always
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - "./pg/postgresql.conf:/var/lib/postgresql/data/postgresql.conf"
+    ports:
+      - "5432:5432"
+  memcached:
+    image: memcached:latest
+    container_name: memcached
+    ports:
+        - "11211:11211"
+  adminer:
+    image: adminer:4.7
+    container_name: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+volumes:
+  pg_data:
